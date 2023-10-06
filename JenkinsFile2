@@ -1,0 +1,56 @@
+pipeline{
+    tools{
+        maven 'mymaven'
+    }
+    agent any
+    stages
+    {
+        stage('clone Repo')
+        {
+            steps{
+                    git 'https://github.com/RoopaUmesh/DevOpsClassCodes.git'
+                 }            
+        }
+   
+        stage('compile the code')
+        {
+            steps{
+                        sh 'mvn compile'                
+                 }
+        }
+       
+        stage('code review')
+        {
+            steps{
+                        sh 'mvn pmd:pmd'                
+                 }
+        }
+       
+        stage('test the code')
+        {
+            steps{
+                        sh 'mvn test'                
+                 }
+        }
+       
+        stage('package the code')
+        {
+            steps{
+                        sh 'mvn package'                
+                 }
+            post{
+                success{
+                            echo "archiving the artifacts"
+                            archiveArtifact artifacts: '**/target/*.war'
+                }
+        }
+       
+        stage('Deploy to Tomcat Server')
+        {
+            steps{
+                      deploy adapters: [tomcat9(path: '', url: 'http://localhost:1234/')], contextPath: null, war: '**/*.war'
+                 }
+        }
+    }
+
+}
